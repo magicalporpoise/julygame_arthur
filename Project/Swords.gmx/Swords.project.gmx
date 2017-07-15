@@ -9,6 +9,10 @@
     <sprite>sprites\spr_char_test</sprite>
     <sprite>sprites\spr_exit</sprite>
     <sprite>sprites\spr_dust_effect</sprite>
+    <sprite>sprites\carn_idle</sprite>
+    <sprite>sprites\carn_idle_doublesize</sprite>
+    <sprite>sprites\spr_hitbox_jab</sprite>
+    <sprite>sprites\spr_hitbox_slash</sprite>
   </sprites>
   <backgrounds name="background">
     <background>background\bg_floor</background>
@@ -20,12 +24,23 @@
   <paths name="paths"/>
   <scripts name="scripts">
     <script>scripts\move.gml</script>
+    <script>scripts\move_ext.gml</script>
     <script>scripts\grid_place_meeting.gml</script>
     <script>scripts\dash.gml</script>
+    <script>scripts\collision_rectangle_list.gml</script>
+    <script>scripts\place_meeting_list.gml</script>
+    <script>scripts\apply_damage.gml</script>
+    <script>scripts\collide_grid.gml</script>
+    <script>scripts\collide_enemy.gml</script>
+    <script>scripts\decelerate.gml</script>
+    <script>scripts\get_path_point.gml</script>
+    <script>scripts\updatexy.gml</script>
+    <script>scripts\linear_path_interupt.gml</script>
   </scripts>
   <objects name="objects">
     <object>objects\Level</object>
     <object>objects\obj_player_par</object>
+    <object>objects\character_carn</object>
     <object>objects\Level_Progress</object>
     <object>objects\obj_exit_portal</object>
     <object>objects\obj_enemy_par</object>
@@ -34,6 +49,7 @@
       <object>objects\obj_effect_inout</object>
       <object>objects\obj_effect_dust</object>
     </objects>
+    <object>objects\obj_hitbox</object>
   </objects>
   <rooms name="rooms">
     <room>rooms\level_up_room</room>

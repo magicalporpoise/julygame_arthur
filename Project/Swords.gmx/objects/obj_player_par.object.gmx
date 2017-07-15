@@ -38,7 +38,8 @@ movement_inputs[3] = ord("S");
 
 //my_move_speed = 300;
 //TEMP
-my_move_speed = 300;
+my_move_speed_max = 800;
+my_move_speed = 200;
 //movement direction
 my_move_dir = 0;
 //-------------------------------------
@@ -58,10 +59,27 @@ combo_max = 3;
 dash_timer = 2; //dashing
 dash_cd = 5;
 
+knocked_timer = 3; //slight stunnings
+knocked_light_cd = 3;
+knocked_heavy_cd = 8;
+
 //ability variables
 dash_bool = false;
 atk_bool = true;
-dash_distance = my_move_speed*4;
+dash_distance[0] = my_move_speed*2;
+dash_distance[1] = my_move_speed*3;
+dash_distance[2] = my_move_speed*4;
+
+// what hitbox to use
+// 0 for jab, 1 for slash
+atk_angle[0] = 0;
+atk_angle[1] = 0;
+atk_angle[2] = 0;
+
+//hitbox
+atk_hitbox_active = noone;
+atk_hitbox_size = obj_hitbox;
+
 
 //getting hit
 knocked = false; 
@@ -69,6 +87,32 @@ knocked = false;
 // spawn in middle
 x = room_width div 2 + sprite_width/2;
 y = room_height div 2 + sprite_height/2;
+</string>
+          </argument>
+        </arguments>
+      </action>
+    </event>
+    <event eventtype="2" enumb="3">
+      <action>
+        <libid>1</libid>
+        <id>603</id>
+        <kind>7</kind>
+        <userelative>0</userelative>
+        <isquestion>0</isquestion>
+        <useapplyto>-1</useapplyto>
+        <exetype>2</exetype>
+        <functionname></functionname>
+        <codestring></codestring>
+        <whoName>self</whoName>
+        <relative>0</relative>
+        <isnot>0</isnot>
+        <arguments>
+          <argument>
+            <kind>1</kind>
+            <string>/// KNOCKED TIMER
+
+// set knocked to false
+knocked = false;
 </string>
           </argument>
         </arguments>
@@ -116,7 +160,7 @@ dash_bool = false;
         <arguments>
           <argument>
             <kind>1</kind>
-            <string>// COMBO
+            <string>/// COMBO TIMER
 // when the combo has reached its end
 //      OR
 // when the maximum combo has been reached
@@ -177,10 +221,10 @@ atk_bool = true;
           <argument>
             <kind>1</kind>
             <string>/// MOVEMENT AND ATTACKING
-
+event_inherited();
 //based off SETH COSTER--------------------------
-//var SEC = delta_time/1000000;
-var SEC = 1/room_speed;
+var SEC = delta_time/1000000;
+//var SEC = 1/room_speed;
 //speed
 var spd = my_move_speed * SEC;
 
@@ -204,26 +248,50 @@ if(voluntary_moving) my_move_dir = point_direction(0,0,move_xinput,move_yinput);
 
 //MOVEMENT:
 //attacking has priority
-if(dash_bool){
-    spd = dash_distance*SEC;
-    dash(spd, my_move_dir);
-//then moving
-}else if(voluntary_moving){
-    //  based on 'delta_time', not frames
-    move(spd, my_move_dir);
-//then decelerating
-} else if(!knocked){
-    //decelerate
-    //spd *= my_move_decel;
-    //if(spd &lt; my_move_speed/2)spd = 0;
-    //update velocity
-    //move(spd, my_move_dir);
-}
+if(!knocked){
+    if(!atk_bool){
+        var d = clamp(combo_num-1, 0, combo_max-1);
+        spd = dash_distance[d]*SEC;
+        dash(spd, my_move_dir);
+        // make hit box
+        if(atk_hitbox_active == noone){
+            atk_hitbox_active = instance_create(x, y, atk_hitbox_size);
+            atk_hitbox_active.alliance_id = self.alliance_id;
+            atk_hitbox_active.image_angle = my_move_dir;
+            if(atk_angle[d] == 1){
+                atk_hitbox_active.sprite_index = spr_hitbox_slash;
+            }
+        }
+    //then moving
+    }else if(voluntary_moving){
+        //  based on 'delta_time', not frames
+        move(spd, my_move_dir);
+        decelerate(0.9, (move_xinput==0), (!move_yinput==0), 15, false);
+    //then decelerating
+    } else { 
+        //decelerate   
+        decelerate(0.4, (move_xinput==0), (!move_yinput==0), 10, true);
+    }
+} else updatexy(hvel, vvel);
+//move(0, my_move_dir);
 //------------------------------------------------
 
 //update depth and rotation
 image_angle = my_move_dir;
-depth = -y;
+
+// make hb follow or reset hitbox
+if(atk_hitbox_active != noone){
+    if(!atk_bool){
+        var rot_x = lengthdir_x(sprite_width div 2, my_move_dir);
+        var rot_y = lengthdir_y(sprite_height div 2, my_move_dir);
+        atk_hitbox_active.x = x + rot_x;
+        atk_hitbox_active.y = y + rot_y;
+        atk_hitbox_active.image_angle = my_move_dir;
+    }else {
+        with(atk_hitbox_active){instance_destroy();}
+        atk_hitbox_active = noone;
+    }
+}
 
 //ATTACKING:
 if(atk_bool){
@@ -235,6 +303,7 @@ if(atk_bool){
             alarm_set(attack_timer, attack_cd);
             alarm_set(combo_timer, combo_cd);
         }
+        combo_num = clamp(combo_num, 0, combo_max);
     }
 }
 </string>
@@ -261,12 +330,12 @@ if(atk_bool){
             <kind>1</kind>
             <string>draw_set_color(c_white);
 
-draw_text(16,16,  "Combo Count = " + string(combo_num));
-draw_text(16,32,  "Combo Alarm = " + string(alarm_get(combo_timer)));
+draw_text(16,16,  "number of enemies = " + string(instance_number(obj_enemy_par)));
+draw_text(16,32,  "my depth = " + string(depth));
 draw_text(16,48,  "Attack Alarm = " + string(alarm_get(attack_timer)));
 draw_text(16,64,  "Dash Alarm = " + string(alarm_get(dash_timer)));
 draw_text(16,80,  "Dust Count = " + string(instance_number(obj_effect_dust)));
-//draw_text(16,96,  "Combo Count = " + string(combo_num));
+draw_text(16,96,  "Combo Count = " + string(combo_num));
 draw_text(16,112, "WASD to move, SPACE to dash, purple is the exit");
 </string>
           </argument>

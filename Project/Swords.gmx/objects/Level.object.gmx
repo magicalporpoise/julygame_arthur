@@ -45,8 +45,8 @@ var HARD = (difficulty &gt;= FINAL_LEVEL);
 var divisor;
 
 if(EASY)divisor = 16;
-else if(MEDIUM)divisor = 8;
-else divisor = 4;
+else if(MEDIUM)divisor = 16;
+else divisor = 8;
 
 room_width = (CELL_WIDTH/divisor)*720;
 room_height = (CELL_HEIGHT/divisor)*720;
@@ -57,6 +57,8 @@ var height = room_height div CELL_HEIGHT;
 
 // create the grid
 grid = ds_grid_create(width, height);
+// path grid
+grid_path = mp_grid_create(0, 0, width, height, CELL_WIDTH, CELL_HEIGHT);
 
 // fill grid with VOID cells
 ds_grid_set_region(grid, 0, 0, width-1, height-1, VOID);
@@ -70,7 +72,7 @@ var cx = width div 2;
 var cy = height div 2;
 
 //create the player at the center
-instance_create(cx, cy, obj_player_par);
+instance_create(cx, cy, character_carn);
 
 // give controller a direction
 var cdir = irandom(3);
@@ -78,15 +80,16 @@ var cdir = irandom(3);
 // odds variable for randomness
 //  for controller direction
 var odds_change_dir = 1;
+var odds_spawn_enemy = 20;
 
 //CREATE LEVEL with X steps
 // 1000 is easy
 // 10000 is INSANE
 var X;
 
-if(EASY) X = difficulty * 500;
-else if(MEDIUM) X = difficulty * 1000;
-else if(HARD) X = difficulty * 2000;
+if(EASY) X = difficulty * 300;
+else if(MEDIUM) X = difficulty * 500;
+else if(HARD) X = difficulty * 800;
 
 //variables for special tiles
 //var quarterway = X div 4;
@@ -104,6 +107,10 @@ for(var i = 0; i &lt; X ; i++) {
     //randomize controller direction
     if(irandom(odds_change_dir) == odds_change_dir){
         cdir = irandom(3);
+    }
+    //random enemy spawns
+    if(irandom(odds_spawn_enemy) == odds_spawn_enemy){
+        instance_create(cx*CELL_WIDTH + CELL_WIDTH/2, (cy*CELL_HEIGHT) + CELL_HEIGHT/2, obj_enemy_par);
     }
     
     //move controller
@@ -180,19 +187,22 @@ for(var yy = 0; yy &lt; height; yy++){
         }else if(grid[# xx, yy] == FLOOR){
             //draw floor
             tile_add(bg_floor, 0, 0, CELL_WIDTH, CELL_HEIGHT, xx*CELL_WIDTH, yy*CELL_HEIGHT, 0);
-        }/*else if(grid[# xx, yy] == WALL){
+        } if(grid[# xx, yy] == PORTAL){
+                tile_add(bg_exit, 0, 0, CELL_WIDTH, CELL_HEIGHT, xx*CELL_WIDTH, yy*CELL_HEIGHT, 0);
+                //insert portal object
+                instance_create(xx*CELL_WIDTH + CELL_WIDTH div 2, yy*CELL_HEIGHT + CELL_HEIGHT div 2, obj_exit_portal); 
+        }else if(grid[# xx, yy] == WALL){
             //draw wall
-             tile_add(bg_wall, 0, 0, CELL_WIDTH, CELL_HEIGHT, xx*CELL_WIDTH, yy*CELL_HEIGHT, 0);
-        }*/else if(grid[# xx, yy] == SPECIAL){
+            tile_add(bg_wall, 0, 0, CELL_WIDTH, CELL_HEIGHT, xx*CELL_WIDTH, yy*CELL_HEIGHT, 0);
+            // add in CELL to PATH FINDER
+            mp_grid_add_cell(grid_path, xx, yy);
+        } else if(grid[# xx, yy] == SPECIAL){
             //draw special
              tile_add(bg_special, 0, 0, CELL_WIDTH, CELL_HEIGHT, xx*CELL_WIDTH, yy*CELL_HEIGHT, 0);
-        }else if(grid[# xx, yy] == PORTAL){
-            tile_add(bg_exit, 0, 0, CELL_WIDTH, CELL_HEIGHT, xx*CELL_WIDTH, yy*CELL_HEIGHT, 0);
-            //insert portal object
-            instance_create(xx*CELL_WIDTH + CELL_WIDTH div 2, yy*CELL_HEIGHT + CELL_HEIGHT div 2, obj_exit_portal);
         }
     }
 }
+
 
 // ADD DRAWING WITH NEW TILE SET
 // BASED OFF HEART BEAST CODE
@@ -280,7 +290,6 @@ for (var yy = 2; yy &lt; (height-1)*2; yy++) {
 
 // create view on room
 // TESTING PURPOSES
-
 view_xview[1] = 0;
 view_yview[1] = 0;
 view_wview[1] = room_width;
@@ -290,7 +299,6 @@ view_yport[1] = 0;
 view_wport[1] = 960;
 view_hport[1] = 720;
 
-view_visible[1] = true;
 
 //player view
 // FIGURE IT OUT LATER
@@ -298,27 +306,21 @@ view_visible[1] = true;
 // PLAYER, ONCE THAT'S SOLVED, WORK ON MAKING IT SO
 // NOTHING ELSE MOVES DURING THIS PAN
 //*****************************************************
-/*
-var v_wview = 960/2;
-var v_hview = 720/2
-var v_xview = cx;
-var v_yview = cy;
-var v_xport = 0;
-var v_yport = 0;
-var v_wport = 960;
-var v_hport = 720;
-var v_object = obj_player_par;
-var v_hborder = 400;
-var v_vborder = 350;
-var v_hspeed = -1;
-var v_vspeed = -1;
-//set view
-room_set_view(room, 0, true, 
-              v_xview, v_yview, v_wview, v_hview, 
-              v_xport, v_yport, v_wport, v_hport, 
-              v_hborder, v_vborder, v_hspeed, v_vspeed, 
-              v_object);
-*/
+
+view_wview[0]= 960/2;
+view_hview[0]= 720/2
+view_xview[0]= cx;
+view_yview[0]= cy;
+view_xport[0]= 0;
+view_yport[0]= 0;
+view_wport[0]= 960;
+view_hport[0]= 720;
+view_object[0] = obj_player_par;
+view_hborder[0] = 400;
+view_vborder[0] = 350;
+view_hspeed[0] = -1;
+view_vspeed[0] = -1;
+
 //view_xview[view_current] = cx;
 //view_yview[view_current] = cy;
 
@@ -333,6 +335,40 @@ room_set_view(room, 0, true,
 
 
 
+</string>
+          </argument>
+        </arguments>
+      </action>
+    </event>
+    <event eventtype="3" enumb="0">
+      <action>
+        <libid>1</libid>
+        <id>603</id>
+        <kind>7</kind>
+        <userelative>0</userelative>
+        <isquestion>0</isquestion>
+        <useapplyto>-1</useapplyto>
+        <exetype>2</exetype>
+        <functionname></functionname>
+        <codestring></codestring>
+        <whoName>self</whoName>
+        <relative>0</relative>
+        <isnot>0</isnot>
+        <arguments>
+          <argument>
+            <kind>1</kind>
+            <string>/// change view in room
+
+if(keyboard_check_pressed(vk_numpad1)){
+        view_visible[0] = true;
+        view_visible[1] = false;
+        view_enabled = true;
+} else if(keyboard_check_pressed(vk_numpad2)){
+        view_visible[1] = true;
+        view_visible[0] = false;
+        view_enabled = true;
+
+}
 </string>
           </argument>
         </arguments>
@@ -357,6 +393,7 @@ room_set_view(room, 0, true,
             <kind>1</kind>
             <string>/// Go to level up for testing
 ds_grid_destroy(grid);
+mp_grid_destroy(grid_path);
 room_goto(level_up_room);
 </string>
           </argument>
@@ -382,6 +419,7 @@ room_goto(level_up_room);
             <kind>1</kind>
             <string>/// restart room for testing
 ds_grid_destroy(grid);
+mp_grid_destroy(grid_path);
 room_restart();
 </string>
           </argument>

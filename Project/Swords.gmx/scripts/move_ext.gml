@@ -1,4 +1,4 @@
-///move(spd, dir)
+///move(spd, dir, ignoreClamp)
 //
 // written by Seth Coster
 //
@@ -6,17 +6,21 @@
 /// @arg direction
 // handle using hvel and vvel
 
+
 //get args 
 var spd = argument0; //going a certain speed
 var dir = argument1; //in a certain direction
+var clam = argument2; 
 
 //target destinations
 hvel += (lengthdir_x(spd,dir));
 vvel += (lengthdir_y(spd,dir));
 
 //clamp values
-hvel = clamp(hvel, -my_move_speed_max, my_move_speed_max);
-vvel = clamp(vvel, -my_move_speed_max, my_move_speed_max);
+if(clam){
+    hvel = clamp(hvel, -my_move_speed_max, my_move_speed_max);
+    vvel = clamp(vvel, -my_move_speed_max, my_move_speed_max);
+}
 
 //if place is free, go there...
 if !grid_place_meeting(x+hvel,y+vvel) {

@@ -27,7 +27,7 @@
             <kind>1</kind>
             <string>/// CREATE IN-THEN-OUT EFFECT
 
-depth = -y+1;
+depth = -y+sprite_width;
 </string>
           </argument>
         </arguments>
