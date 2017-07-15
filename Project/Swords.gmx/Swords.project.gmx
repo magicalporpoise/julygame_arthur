@@ -10,8 +10,8 @@
     <sprite>sprites\spr_exit</sprite>
     <sprite>sprites\spr_dust_effect</sprite>
     <sprite>sprites\carn_idle</sprite>
-    <sprite>sprites\carn_idle_doublesize</sprite>
     <sprite>sprites\spr_hitbox_jab</sprite>
+    <sprite>sprites\spr_hitbox_projectile</sprite>
     <sprite>sprites\spr_hitbox_slash</sprite>
   </sprites>
   <backgrounds name="background">
